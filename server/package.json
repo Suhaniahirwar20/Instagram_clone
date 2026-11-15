@@ -1,0 +1,28 @@
+{
+  "name": "instaAi-backend",
+  "version": "1.0.0",
+  "main": "src/server.js",
+  "scripts": {
+    "dev": "nodemon src/server.js",
+    "start": "nodemon src/server.js"
+  },
+  "author": "",
+  "license": "ISC",
+  "description": "Instagram Clone",
+  "type": "module",
+  "dependencies": {
+    "bcrypt": "^6.0.0",
+    "cors": "^2.8.6",
+    "dotenv": "^18.0.9",
+    "express": "^5.3.0",
+    "express-validator": "^7.3.2",
+    "form-data": "^4.0.6",
+    "groq-sdk": "^1.6.0",
+    "jsonwebtoken": "^9.0.3",
+    "mongodb": "^7.8.0",
+    "mongoose": "^9.11.4",
+    "multer": "^2.5.0",
+    "nodemon": "^3.1.14",
+    "socket.io": "^4.8.4"
+  }
+}
