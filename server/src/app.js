@@ -14,7 +14,7 @@ const app = express();
 
 app.use(
   cors({
-    origin: "http://localhost:3000",
+    origin: "https://instagram-clone-k5arck94z-suhaniahirwar96-2458.vercel.app",
     credentials: true,
   })
 );
