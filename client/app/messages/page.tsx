@@ -244,12 +244,6 @@ const page = () => {
                 </p>
 
                 <button
-                  onClick={() => {
-                    if (filtered[0]) {
-                      handleSelectConv(filtered[0]._id);
-                    }
-                  }}
-                  disabled={filtered.length === 0}
                   className="px-4 py-2 bg-[#0095f6] text-white text-sm font-semibold rounded-lg hover:bg-[#1877f2] transition-colors disabled:opacity-50"
                 >
                   Send message
