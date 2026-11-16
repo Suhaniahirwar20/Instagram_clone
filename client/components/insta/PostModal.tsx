@@ -13,9 +13,7 @@ import {
   ChevronLeft,
   ChevronRight,
 } from "lucide-react";
-import axiosInstance from "@/lib/axios";
-import useAuthStore from "@/store/authStore";
-import { Post, formatTimeAgo, formatLikeCount } from "@/lib/mock-data";
+import { Post, currentUser, formatTimeAgo, formatLikeCount } from "@/lib/mock-data";
 
 interface PostModalProps {
   post: Post;
@@ -24,20 +22,12 @@ interface PostModalProps {
 }
 
 export default function PostModal({ post: initialPost, posts, onClose }: PostModalProps) {
-  const user = useAuthStore((state) => state.user);
-
-  const [currentIndex, setCurrentIndex] = useState(() => {
-  const index = posts.findIndex(
-    (p) => p._id === initialPost._id
+  const [currentIndex, setCurrentIndex] = useState(
+    posts.findIndex((p) => p._id === initialPost._id)
   );
-  return index >= 0 ? index : 0;
-});
-
   const post = posts[currentIndex] ?? initialPost;
 
-  const [liked, setLiked] = useState(post.likes.some(
-    (like: any) => like.user?._id === user?._id
-  ));
+  const [liked, setLiked] = useState(post.likes.includes(currentUser._id));
   const [likeCount, setLikeCount] = useState(post.likes.length);
   const [saved, setSaved] = useState(false);
   const [commentText, setCommentText] = useState("");
@@ -48,16 +38,11 @@ export default function PostModal({ post: initialPost, posts, onClose }: PostMod
   const hasNext = currentIndex < posts.length - 1;
 
   useEffect(() => {
-  setLiked(
-    post.likes.some(
-      (like: any) => like.user?._id === user?._id
-    )
-  );
-
-  setLikeCount(post.likes.length);
-  setLocalComments(post.comments || []);
-  setSaved(false);
-}, [currentIndex, post, user]);
+    setLiked(post.likes.includes(currentUser._id));
+    setLikeCount(post.likes.length);
+    setLocalComments(post.comments);
+    setSaved(false);
+  }, [currentIndex]);
 
   useEffect(() => {
     const handler = (e: KeyboardEvent) => {
@@ -74,41 +59,27 @@ export default function PostModal({ post: initialPost, posts, onClose }: PostMod
     return () => { document.body.style.overflow = ""; };
   }, []);
 
- const handleLike = async () => {
-  try {
-    if (liked) {
-      await axiosInstance.delete(`/likes/${post._id}`);
-
-      setLiked(false);
-      setLikeCount((prev) => Math.max(0, prev - 1));
-    } else {
-      await axiosInstance.post(`/likes/${post._id}`);
-
-      setLiked(true);
-      setLikeCount((prev) => prev + 1);
-    }
-  } catch (error) {
-    console.error("Like error:", error);
-  }
-};
+  const handleLike = () => {
+    setLiked((prev) => {
+      setLikeCount((c) => (prev ? c - 1 : c + 1));
+      return !prev;
+    });
+  };
 
   const handleComment = (e: React.FormEvent) => {
-  e.preventDefault();
-
-  if (!commentText.trim() || !user) return;
-
-  setLocalComments((prev) => [
-    ...prev,
-    {
-      _id: `cm_${Date.now()}`,
-      user: user,
-      text: commentText.trim(),
-      createdAt: new Date().toISOString(),
-    },
-  ]);
-
-  setCommentText("");
-};
+    e.preventDefault();
+    if (!commentText.trim()) return;
+    setLocalComments((prev) => [
+      ...prev,
+      {
+        _id: `cm_${Date.now()}`,
+        user: currentUser,
+        text: commentText.trim(),
+        createdAt: new Date().toISOString(),
+      },
+    ]);
+    setCommentText("");
+  };
 
   return (
     <div
@@ -151,7 +122,7 @@ export default function PostModal({ post: initialPost, posts, onClose }: PostMod
         {/* Image — desktop: left half; mobile: fixed height top */}
         <div className="bg-black flex items-center justify-center shrink-0 h-[44vw] min-h-[240px] max-h-[360px] md:h-auto md:max-h-none md:flex-1 md:min-h-0">
           <img
-            src={post.media?.[0]?.url || "/placeholder.png"}.
+            src={post.imageUrl}
             alt="post"
             className="w-full h-full object-cover md:object-contain md:max-h-[90vh]"
           />
@@ -169,7 +140,7 @@ export default function PostModal({ post: initialPost, posts, onClose }: PostMod
               <div className="w-8 h-8 rounded-full overflow-hidden story-gradient p-[2px] shrink-0">
                 <div className="w-full h-full rounded-full bg-ig-surface p-[1px]">
                   <img
-                    src={post.user.profilePicture}
+                    src={post.user.profilePic}
                     alt={post.user.username}
                     className="w-full h-full rounded-full object-cover"
                   />
@@ -221,7 +192,7 @@ export default function PostModal({ post: initialPost, posts, onClose }: PostMod
             <div className="flex gap-3 mb-4">
               <Link href={`/profile/${post.user.username}`} onClick={onClose} className="shrink-0">
                 <img
-                  src={post.user.profilePicture}
+                  src={post.user.profilePic}
                   alt={post.user.username}
                   className="w-8 h-8 rounded-full object-cover"
                 />
@@ -246,7 +217,7 @@ export default function PostModal({ post: initialPost, posts, onClose }: PostMod
             {localComments.map((comment) => (
               <div key={comment._id} className="flex gap-3 mb-4">
                 <img
-                  src={comment.user.profilePicture}
+                  src={comment.user.profilePic}
                   alt={comment.user.username}
                   className="w-8 h-8 rounded-full object-cover shrink-0"
                 />
